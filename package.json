@@ -1,0 +1,23 @@
+{
+  "name": "editjs",
+  "version": "0.0.1",
+  "description": "JavaScript editor",
+  "main": "editjs-main.js",
+  "scripts": {
+    "start": "electron .",
+    "app:dir": "electron-builder --dir",
+    "app:dist": "electron-builder"
+  },
+  "build": {
+    "appId": "EditJS",
+    "linux": {
+      "category": "Development"
+    }
+  },
+  "author": "Richard Remer <reanjr@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^24.3.0",
+    "electron-builder": "^23.6.0"
+  }
+}
