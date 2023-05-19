@@ -1,6 +1,6 @@
 const {join, resolve} = require("path");
-const {readFile, writeFile} = require("fs").promises;
 const {app, dialog, ipcMain, BrowserWindow, Menu} = require("electron");
+const {Resource} = require("./resource.js");
 
 class EditJSApplication {
   #dir;
@@ -58,36 +58,27 @@ class EditJSApplication {
 
     ipcMain.handle("dirty", ({sender}) => {
       const window = BrowserWindow.fromWebContents(sender);
-      const data = this.#documentData.get(window);
+      const resource = this.#documentData.get(window);
 
-      data.dirty = true;
-
-      if (data.file) {
-        window.setTitle(`EditJS - ${data.file}*`);
-      }
+      resource.dirty = true;
+      window.setTitle("EditJS - " + resource.getTitle());
     });
 
     ipcMain.handle("clean", ({sender}) => {
       const window = BrowserWindow.fromWebContents(sender);
-      const data = this.#documentData.get(window);
+      const resource = this.#documentData.get(window);
 
-      data.dirty = false;
-
-      if (data.file) {
-        window.setTitle(`EditJS - ${data.file}`);
-      }
+      resource.dirty = false;
+      window.setTitle("EditJS - " + resource.getTitle());
     });
 
     ipcMain.handle("content", async ({sender}, content) => {
       const window = BrowserWindow.fromWebContents(sender);
-      const data = this.#documentData.get(window);
+      const resource = this.#documentData.get(window);
 
-      await writeFile(data.path, content, "utf8");
+      await resource.save(content);
 
-      data.data = content;
-      data.dirty = false;
-
-      window.setTitle(`EditJS - ${data.file}`);
+      window.setTitle("EditJS - " + resource.getTitle());
     });
   }
 
@@ -96,19 +87,25 @@ class EditJSApplication {
    * @param {string|null} file
    */
   async openDocument(file) {
-    const path = file ? resolve(this.#dir, file) : null;
-    const data = path ? await readFile(path, "utf8") : null;
-    const docMenu = require("../menu/document-menu.js")(this);
     const window = new BrowserWindow(DocumentWindowInit);
+    const docMenu = require("../menu/document-menu.js")(this);
+    const resource = await Resource.open(this, file);
 
-    this.#documentData.set(window, {file, path, data});
-
-    window.setTitle("EditJS - " + (file ?? "*new*"));
-    window.setMenu(docMenu);
+    this.#documentData.set(window, resource);
 
     window.on("close", () => {
       this.#documentData.delete(window);
     });
+
+    if (resource.dir) {
+      await this.openFile(window);
+      // HACK: using window for openFile context only
+      window.close();
+      return;
+    }
+
+    window.setMenu(docMenu);
+    window.setTitle("EditJS - " + resource.getTitle());
 
     await window.loadFile("ui/document.html");
     await window.show();
@@ -140,12 +137,12 @@ class EditJSApplication {
    * Save file for a window.  Show file save dialog if document is new.
    */
   async saveFile(window) {
-    const data = this.#documentData.get(window);
+    const resource = this.#documentData.get(window);
 
-    if (data.path) {
-      window.webContents.send("save");
-    } else {
+    if (resource.unknown) {
       await this.saveFileAs(window);
+    } else {
+      window.webContents.send("save");
     }
   }
 
@@ -153,21 +150,17 @@ class EditJSApplication {
    * Show file save dialog for a window.
    */
   async saveFileAs(window) {
-    const data = this.#documentData.get(window);
+    const resource = this.#documentData.get(window);
 
     const {canceled, filePath} = await dialog.showSaveDialog(window, {
-      defaultPath: data.path ?? undefined,
+      defaultPath: resource.path ?? undefined,
       // TODO: verify createDirectory works on Linux
       properties: ["createDirectory", "showOverwriteConfirmation"],
       filters: DialogFilters
     });
 
     if (!canceled) {
-      data.path = filePath;
-      data.file = filePath.startsWith(this.#dir)
-        ? filePath.slice(this.#dir.length+1)
-        : filePath;
-
+      resource.updatePath(filePath);
       window.webContents.send("save");
     }
   }
