@@ -10,6 +10,7 @@ git clone git@github.com:richRemer/editjs.git
 ```
 
 Navigate to Repository
+----------------------
 ```sh
 cd editjs
 ```
