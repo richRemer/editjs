@@ -38,4 +38,7 @@ $(bin)/$(command): dist/$(command).sh
 install: $(libexec)/$(appimage) $(bin)/$(command)
 	cp -rT dist/target /
 
-.PHONY: build clean install
+uninstall:
+	rm -fr $(prefix)/bin/$(command) $(prefix)/libexec/$(appimage)
+
+.PHONY: build clean install uninstall

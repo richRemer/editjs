@@ -15,9 +15,28 @@ Navigate to Repository
 cd editjs
 ```
 
+Build Using make
+----------------
+```sh
+make
+```
+
 Install Using make
 ------------------
 ```
-make
 sudo make install
+```
+
+Uninstalling
+============
+Navigate to Repository
+----------------------
+```sh
+cd editjs
+```
+
+Uninstall Using make
+--------------------
+```sh
+sudo make uninstall
 ```
