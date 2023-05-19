@@ -1,0 +1,37 @@
+#!/bin/bash -e
+
+cd $(dirname "${BASH_SOURCE[@]}")
+
+declare version
+declare image
+declare tmp
+
+if ! which jq >/dev/null; then
+  echo "jq command not found" >&2
+  exit 1
+fi
+
+version=$(jq -r .version < package.json)
+image=dist/editjs-$version.AppImage
+
+if ! test -e $image; then
+  echo "missing AppImage in $image" >&2
+  echo "run 'npm run build' before installing" >&2
+  exit 1
+fi
+
+mkdir -p /usr/local/libexec
+cp $image /usr/local/libexec/
+
+image=$(basename $image)
+tmp=$(mktemp)
+
+cat > $tmp << BASH
+#!/bin/bash -e
+declare tmpdir
+tmpdir=\$(mktemp -d)
+nohup /usr/local/libexec/$image -- "\$@" &> \$tmpdir/editjs.log &
+BASH
+
+chmod +rx $tmp
+mv $tmp /usr/local/bin/editjs
