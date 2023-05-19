@@ -36,6 +36,6 @@ $(bin)/$(command): dist/$(command).sh
 	cp $< $@
 
 install: $(libexec)/$(appimage) $(bin)/$(command)
-	cp -rT $(target) /
+	cp -rT dist/target /
 
 .PHONY: build clean install
