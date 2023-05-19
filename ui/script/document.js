@@ -8,7 +8,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     value: state.data ?? "",
     mode: "javascript",
     lineNumbers: true,
-    autofocus: true
+    autofocus: true,
+    extraKeys: {
+      "Shift-Tab": "indentLess"
+    }
   });
 
   editor.on("change", async () => {
