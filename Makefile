@@ -15,7 +15,7 @@ build: $(libexec)/$(appimage) $(bin)/$(command)
 clean:
 	rm -fr dist node_modules
 
-node_modules:
+node_modules: package.json package-lock.json
 	npm install
 	@touch $@
 
