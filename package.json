@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
-    "build-dev": "electron-builder --dir"
+    "build-dev": "electron-builder --dir",
+    "test": "echo no tests defined"
   },
   "build": {
     "appId": "EditJS",
