@@ -9,10 +9,14 @@ Clone Repository
 git clone git@github.com:richRemer/editjs.git
 ```
 
+Navigate to Repository
+```sh
+cd editjs
+```
+
 Install Using make
 ------------------
 ```
-cd editjs
 make
 sudo make install
 ```
